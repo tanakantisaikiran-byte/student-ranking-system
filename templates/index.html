@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academix - Student Ranking & Heap Sort Visualizer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dark-theme">
+    <div class="glow-bg"></div>
+    
+    <!-- Sidebar / Navigation -->
+    <header class="app-header no-print">
+        <div class="logo">
+            <i class="fa-solid fa-graduation-cap logo-icon"></i>
+            <h1>Academix</h1>
+        </div>
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </button>
+            <button class="nav-tab" data-tab="students-tab">
+                <i class="fa-solid fa-user-graduate"></i> Student Database
+            </button>
+            <button class="nav-tab" data-tab="visualizer-tab">
+                <i class="fa-solid fa-network-wired"></i> Heap Sort Visualizer
+            </button>
+        </nav>
+    </header>
+
+    <main class="app-container">
+        
+        <!-- Tab: Dashboard -->
+        <section id="dashboard" class="tab-content active">
+            <!-- Stats Grid -->
+            <div class="stats-grid no-print">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper blue-glow">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Students</h3>
+                        <p id="stat-total-students">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper gold-glow">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Top Rank Holder</h3>
+                        <p id="stat-top-ranker" class="ranker-name">N/A</p>
+                        <span id="stat-top-score" class="ranker-score">-</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper purple-glow">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Average Marks</h3>
+                        <p id="stat-class-average">0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rankings Leaderboard Panel -->
+            <div class="panel glass-panel rankings-panel">
+                <div class="panel-header">
+                    <div class="panel-title-area">
+                        <h2><i class="fa-solid fa-ranking-star"></i> Student Rankings</h2>
+                        <p class="panel-subtitle">Calculated dynamically using the Heap Sort Algorithm</p>
+                    </div>
+                    <div class="panel-actions no-print">
+                        <div class="filter-group">
+                            <i class="fa-solid fa-filter filter-icon"></i>
+                            <select id="filter-rank-branch">
+                                <option value="">All Branches</option>
+                            </select>
+                            <select id="filter-rank-year">
+                                <option value="">All Years</option>
+                                <option value="1">1st Year</option>
+                                <option value="2">2nd Year</option>
+                                <option value="3">3rd Year</option>
+                                <option value="4">4th Year</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-secondary" id="btn-export-csv">
+                            <i class="fa-solid fa-file-csv"></i> Export CSV
+                        </button>
+                        <button class="btn btn-primary btn-glow" id="btn-export-pdf">
+                            <i class="fa-solid fa-file-pdf"></i> Export PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Print-Only Report Header -->
+                <div class="print-header">
+                    <h1>ACADEMIX STUDENT RANKING REPORT</h1>
+                    <p class="print-date" id="print-report-date"></p>
+                    <div class="print-stats">
+                        <div><strong>Total Students:</strong> <span id="print-stat-total">0</span></div>
+                        <div><strong>Class Average Marks:</strong> <span id="print-stat-avg">0.0</span></div>
+                        <div><strong>Top Ranker:</strong> <span id="print-stat-top">N/A</span></div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="rankings-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Roll Number</th>
+                                <th>Name</th>
+                                <th>Branch</th>
+                                <th>Year</th>
+                                <th>Total Marks</th>
+                                <th>Average Marks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankings-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center">No student records found. Add students in the Database tab.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Student Database -->
+        <section id="students-tab" class="tab-content">
+            <div class="panel glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title-area">
+                        <h2><i class="fa-solid fa-database"></i> Student Database</h2>
+                        <p class="panel-subtitle">Manage student profiles, dynamic subjects, and exam scores</p>
+                    </div>
+                    <button class="btn btn-primary btn-glow" id="btn-open-add-modal">
+                        <i class="fa-solid fa-user-plus"></i> Add New Student
+                    </button>
+                </div>
+
+                <!-- Search and Filter Controls -->
+                <div class="controls-bar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="search-student" placeholder="Search by Name or Roll Number...">
+                    </div>
+                    <div class="filters">
+                        <select id="filter-student-branch">
+                            <option value="">All Branches</option>
+                        </select>
+                        <select id="filter-student-year">
+                            <option value="">All Years</option>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Database Table -->
+                <div class="table-container">
+                    <table class="data-table" id="students-table">
+                        <thead>
+                            <tr>
+                                <th>Roll Number</th>
+                                <th>Name</th>
+                                <th>Branch</th>
+                                <th>Year</th>
+                                <th>Subjects Enrolled</th>
+                                <th>Total Marks</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading database...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Heap Sort Visualizer -->
+        <section id="visualizer-tab" class="tab-content">
+            <div class="visualizer-grid">
+                
+                <!-- Visualizer Controls & Tree -->
+                <div class="panel glass-panel visualizer-main">
+                    <div class="panel-header">
+                        <div class="panel-title-area">
+                            <h2><i class="fa-solid fa-network-wired"></i> Sorting Simulation</h2>
+                            <p class="panel-subtitle">Step-by-step max-heapify and extraction simulation</p>
+                        </div>
+                        <div class="visualizer-controls">
+                            <button class="ctrl-btn" id="vis-btn-prev" title="Previous Step">
+                                <i class="fa-solid fa-backward-step"></i>
+                            </button>
+                            <button class="ctrl-btn play-btn" id="vis-btn-play" title="Play Simulation">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                            <button class="ctrl-btn" id="vis-btn-next" title="Next Step">
+                                <i class="fa-solid fa-forward-step"></i>
+                            </button>
+                            <button class="ctrl-btn" id="vis-btn-reset" title="Reset Simulation">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                            <div class="speed-control">
+                                <span>Speed:</span>
+                                <input type="range" id="vis-speed" min="200" max="2000" step="100" value="800">
+                                <span id="vis-speed-label">0.8s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="visualizer-legend">
+                        <span class="legend-item"><span class="legend-color unsorted"></span> Unsorted</span>
+                        <span class="legend-item"><span class="legend-color comparing"></span> Comparing</span>
+                        <span class="legend-item"><span class="legend-color swapping"></span> Swapping</span>
+                        <span class="legend-item"><span class="legend-color heapified"></span> In Heap</span>
+                        <span class="legend-item"><span class="legend-color sorted"></span> Sorted / Finalized</span>
+                    </div>
+
+                    <!-- Rendering Viewport -->
+                    <div class="viewport-container">
+                        <svg id="tree-canvas" class="tree-svg"></svg>
+                    </div>
+
+                    <!-- Array/Bar Visualization Area -->
+                    <div class="bar-chart-container" id="bar-chart-container"></div>
+                </div>
+
+                <!-- Visualizer Details Sidebar -->
+                <div class="visualizer-sidebar">
+                    <div class="panel glass-panel step-log-panel">
+                        <h3><i class="fa-solid fa-list-check"></i> Simulation Logs</h3>
+                        <div class="step-progress-wrapper">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="vis-progress-fill" style="width: 0%;"></div>
+                            </div>
+                            <span id="vis-step-counter">Step 0 / 0</span>
+                        </div>
+                        <div class="step-explanation" id="vis-explanation">
+                            Click Play or Next Step to begin the Heap Sort algorithm simulation.
+                        </div>
+                        <div class="log-entries" id="vis-log-entries">
+                            <div class="log-entry system-log">Visualizer initialized. Ready to sort.</div>
+                        </div>
+                    </div>
+
+                    <div class="panel glass-panel algorithm-info-panel">
+                        <h3>Heap Sort Algorithm</h3>
+                        <div class="pseudocode">
+                            <div class="code-line" id="line-build-heap"><strong>BuildMaxHeap(A)</strong>:</div>
+                            <div class="code-line indent-1" id="line-heap-loop">for i = n/2 down to 0:</div>
+                            <div class="code-line indent-2" id="line-heapify">MaxHeapify(A, i, n)</div>
+                            <div class="code-line" id="line-sort-loop"><strong>HeapSort(A)</strong>:</div>
+                            <div class="code-line indent-1" id="line-sort-build">BuildMaxHeap(A)</div>
+                            <div class="code-line indent-1" id="line-sort-loop2">for i = n-1 down to 1:</div>
+                            <div class="code-line indent-2" id="line-sort-swap">swap A[0] with A[i]</div>
+                            <div class="code-line indent-2" id="line-sort-reduce">heap_size = heap_size - 1</div>
+                            <div class="code-line indent-2" id="line-sort-heapify">MaxHeapify(A, 0, heap_size)</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Add / Edit Student -->
+    <div class="modal-overlay" id="student-modal">
+        <div class="modal glass-modal">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Student</h2>
+                <button class="modal-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="student-form">
+                <input type="hidden" id="student-id" value="">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="student-name">Full Name <span class="required">*</span></label>
+                        <input type="text" id="student-name" required placeholder="e.g. Alice Smith">
+                    </div>
+                    <div class="form-group">
+                        <label for="student-roll">Roll Number <span class="required">*</span></label>
+                        <input type="text" id="student-roll" required placeholder="e.g. CS2026-001">
+                    </div>
+                    <div class="form-group">
+                        <label for="student-branch">Branch <span class="required">*</span></label>
+                        <input type="text" id="student-branch" required placeholder="e.g. Computer Science">
+                    </div>
+                    <div class="form-group">
+                        <label for="student-year">Year of Study <span class="required">*</span></label>
+                        <select id="student-year" required>
+                            <option value="" disabled selected>Select Year</option>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dynamic Subject Marks Section -->
+                <div class="subject-section">
+                    <div class="subject-section-header">
+                        <h3>Subjects & Scores</h3>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-add-subject-row">
+                            <i class="fa-solid fa-plus"></i> Add Subject
+                        </button>
+                    </div>
+                    <div class="subject-rows-container" id="subject-rows-container">
+                        <!-- Dynamic rows will be inserted here -->
+                    </div>
+                    <p class="subject-empty-msg" id="subject-empty-msg">No subjects added. Click "Add Subject" to enter grades.</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-glow" id="btn-save-student">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="toast-container no-print"></div>
+
+    <!-- JavaScript Files -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/visualizer.js') }}"></script>
+</body>
+</html>
